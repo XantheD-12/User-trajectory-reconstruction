@@ -3,6 +3,13 @@
     <h1>{{ msg }}</h1>
     <div style="width: 100%; height: 400px">
       <amap :zoom="10" :center="center">
+        <!-- icon:https://www.jianshu.com/p/6be42c2cd81a -->
+        <!-- <amap-circle-marker
+          v-for="(pos, i) in res"
+          :key="i"
+          :center="pos"
+          :radius="10"
+        /> -->
         <amap-marker
           v-for="(pos, i) in res"
           :key="i"
@@ -14,7 +21,6 @@
         />
       </amap>
     </div>
-    
   </div>
 </template>
 
@@ -33,7 +39,42 @@ export default {
     };
   },
   methods: {
-    getpoints() {},
+    getOrigin(){
+       this.$axios({
+        method: "get",
+        url: "origin",
+      })
+        .then((res) => {
+          // console.log(res.data);
+          this.res = res.data[0];
+          // 过滤非空的
+          this.res = this.res.filter((data) => {
+            return data != "";
+          });
+          console.log(this.res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    getResult(){
+      this.$axios({
+        method: "get",
+        url: "result",
+      })
+        .then((res) => {
+          // console.log(res.data);
+          this.res = res.data[0];
+          // 过滤非空的
+          this.res = this.res.filter((data) => {
+            return data != "";
+          });
+          console.log(this.res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
     gethello() {
       // 测试后端接口
       // this.$axios({
