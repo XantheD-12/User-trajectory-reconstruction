@@ -1,6 +1,8 @@
 <template>
   <div>
     <h1>{{ msg }}</h1>
+    <!-- <v-btn depressed small>Normal</v-btn> -->
+    <v-btn depressed small color="primary">Primary</v-btn>
     <div style="width: 100%; height: 400px">
       <amap :zoom="10" :center="center">
         <!-- icon:https://www.jianshu.com/p/6be42c2cd81a -->

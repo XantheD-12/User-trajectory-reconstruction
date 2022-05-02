@@ -5,6 +5,7 @@ import store from './store'
 import * as echarts from 'echarts'
 import axios from 'axios'//引入axios
 import qs from 'qs'
+import vuetify from './plugins/vuetify'
 
 Vue.prototype.$echarts = echarts
 
@@ -32,6 +33,7 @@ Vue.use(AmapVue);
 Vue.config.productionTip = false
 
 new Vue({
+  vuetify,
   router,
   store,
   render: h => h(App)
