@@ -3,10 +3,21 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import * as echarts from 'echarts'
+import axios from 'axios'//引入axios
+import qs from 'qs'
 
 Vue.prototype.$echarts = echarts
 
-Vue.config.productionTip = false
+// 解决跨越问题
+// 配置代理 config 下的index.js 文件
+// 可以参考：https://juejin.cn/post/6844903718085722119
+Vue.prototype.$axios = axios.create({
+  // 本地
+  // baseURL:'http://localhost:8003/',
+  // 服务器
+  baseURL:'http://127.0.0.1:5000/',
+});//把axios挂载到vue上,使用方法为:this.$axios
+Vue.prototype.$qs = qs //解决axios的post问题
 
 import AmapVue from '@amap/amap-vue';
 AmapVue.config.version = '2.0'; // 默认2.0，这里可以不修改
@@ -18,15 +29,7 @@ AmapVue.config.plugins = [
 ];
 Vue.use(AmapVue);
 
-import VueAMap from 'vue-amap'
-Vue.use(VueAMap);
-VueAMap.initAMapApiLoader({
-  key: 'your amap key',
-  plugin: ['AMap.Autocomplete', 'AMap.PlaceSearch', 'AMap.Scale', 'AMap.OverView', 'AMap.ToolBar', 'AMap.MapType', 'AMap.PolyEditor', 'AMap.CircleEditor'],
-  // 默认高德 sdk 版本为 1.4.4
-  v: '1.4.4'
-});
-
+Vue.config.productionTip = false
 
 new Vue({
   router,
