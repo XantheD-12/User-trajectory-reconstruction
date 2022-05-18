@@ -1,33 +1,18 @@
-// vue.config.js
-
-/**
- * @type {import('@vue/cli-service').ProjectOptions}
- */
-// 参考：https://cli.vuejs.org/zh/config/#vue-config-js
 module.exports = {
-  // 选项...
-  // proxy: {
-  //   '/api': {
-  //     target: 'http://127.0.0.1:5000',  // 后台接口域名
-  //     ws: true,        //如果要代理 websockets，配置这个参数
-  //     secure: false,  // 如果是https接口，需要配置这个参数
-  //     changeOrigin: true,  //是否跨域
-  //   }
-  // }
-  //assetsDir: 'public', //放置生成的静态资源 (js、css、img、fonts) 的 (相对于 outputDir 的) 目录。
-  //publicPath: '/', //部署应用包时的基本 URL。  
-  devServer: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true, //是否跨域
-        pathRewrite: {
-          '^/api': ''
-        }
-      }
-    },
-    host: 'localhost', //
-    port: 8080, //
-  },
-
+    //生产环境是否要生成 sourceMap
+    productionSourceMap: false,
+    //部署应用包时的基本 URL,用法和 webpack 本身的 output.publicPath 一致
+    //可以通过三元运算去配置dev和prod环境, publicPath: process.env.NODE_ENV === 'production' ? '/prod/' : './'
+    publicPath:'/',
+    //build 时输出的文件目录
+    outputDir:'dist',
+    //放置静态文件目录
+    //assertsDir:'./src/assets',
+    //dev环境下，webpack-dev-server相关配置
+    devServer:{
+        port:6200,
+        host:'0.0.0.0',
+        https:false,
+        open:true
+    }
 }

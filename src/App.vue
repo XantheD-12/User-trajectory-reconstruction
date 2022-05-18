@@ -1,26 +1,60 @@
 <template>
-  <v-app id="app">
-    <!-- <div id="app"> -->
-      <div id="nav">
-        <router-link to="/">Home</router-link> |
-        <router-link to="/about">About</router-link>
-      </div>
-      <router-view />
-    <!-- </div> -->
-  </v-app>
+  <div id="app">
+    <!-- <Mapview></Mapview> -->
+    <div id="nav">
+      <el-menu
+        :default-active="$route.path"
+        :router="true"
+        class="el-menu-demo"
+        mode="horizontal"
+        background-color="#545c64"
+        text-color="#fff"
+        active-text-color="#ffd04b"
+      >
+        <el-menu-item index="/">Home</el-menu-item>
+        <el-menu-item index="/map">Map</el-menu-item>
+        <el-menu-item index="/test">Test</el-menu-item>
+      </el-menu>
+      <!-- <router-link to="/">Home</router-link> |
+      <router-link to="/map">Map</router-link> | -->
+    </div>
+    <router-view />
+  </div>
 </template>
 
-<style>
+<script>
+export default {
+  name: "App",
+  data() {
+    return {
+      // activeIndex: "/",
+    };
+  },
+};
+</script>
+
+<style  scoped>
 #app {
+  height: 80%;
+  width: 100%;
+  padding: 0px;
   font-family: Avenir, Helvetica, Arial, sans-serif;
+  color: #2c3e50;
+  /* margin: 10px; */
+}
+/* #app {
+  
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-}
+  
+} */
 
 #nav {
-  padding: 30px;
+  padding: 20px 0px 20px 0px;
+  /* align-content: center; */
+  text-align: center;
+  font-size: 26px;
 }
 
 #nav a {
