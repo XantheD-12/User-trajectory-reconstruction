@@ -1,9 +1,9 @@
 <template>
   <div class="home_div">
     <div class="btn_box">
-      <el-button type="primary" size="small" round @click="removeMarkers"
+      <!-- <el-button type="primary" size="small" round @click="removeMarkers"
         >Remove</el-button
-      >
+      > -->
       <el-button type="success" size="small" round @click="addMarkers('Origin')"
         >Origin</el-button
       >
@@ -20,18 +20,26 @@
         >清除</el-button
       >
     </div>
-    <div>
-      <p>动画控制</p>
-      <el-button type="primary" @click="addCar">添加小车</el-button>
-      <el-button type="primary" size="small" round @click="startAnimation()"
-        >开始动画</el-button
-      >
-      <el-button type="primary" size="small" round @click="pauseAnimation()"
-        >暂停动画</el-button
-      >
-      <el-button type="primary" size="small" round @click="resumeAnimation()"
-        >继续动画</el-button
-      >
+    <div class="btn_box">
+      动画控制
+      <div>
+        <el-button type="primary" size="small" round @click="startAnimation()"
+          >开始动画</el-button
+        >
+        <el-button type="primary" size="small" round @click="pauseAnimation()"
+          >暂停动画</el-button
+        >
+        <el-button type="primary" size="small" round @click="resumeAnimation()"
+          >继续动画</el-button
+        >
+        <el-button type="success" size="small" round @click="setcenter"
+          >定位</el-button
+        >
+        <!-- <el-button type="primary" size="small" round @click="stopAnimation()"
+          >停止动画</el-button
+        > -->
+      </div>
+      <!-- <el-button type="success" @click="addinfo">infoWindow</el-button> -->
     </div>
     <div id="container"></div>
     <div id="panel"></div>
@@ -60,6 +68,7 @@ export default {
       markList: [],
       path: [], // 路径
       start: null,
+      line: [],
     };
   },
   created() {},
@@ -67,6 +76,38 @@ export default {
     this.init();
   },
   methods: {
+    setcenter() {
+      var map = this.map;
+      // console.log(this.car);
+      console.log(this.car.getPosition());
+      map.setCenter(this.car.getPosition(), true);
+      // this.car.on("moving", function (e) {
+      //   map.setCenter(e.target.getPosition(), true);
+      // });
+    },
+    addinfo() {
+      // 信息窗体的内容
+      var date =
+        this.date.slice(0, 4) +
+        "年" +
+        this.date.slice(4, 6) +
+        "月" +
+        this.date.slice(6, 8) +
+        "日";
+      var content = [
+        "<div><div><b>用户ID: " + this.user_id + "</b>",
+        "日期：" + date,
+        "时间：</div></div>",
+      ];
+
+      // 创建 infoWindow 实例
+      var infoWindow = new AMap.InfoWindow({
+        content: content.join("<br>"), //传入 dom 对象，或者 html 字符串
+      });
+      var map = this.map;
+      // 打开信息窗体
+      infoWindow.open(map, map.getCenter());
+    },
     // 经纬度驾车路线规划：https://lbs.amap.com/demo/jsapi-v2/example/driving-route/plan-route-according-to-lnglat
     // 路径规划：https://lbs.amap.com/api/webservice/guide/api/direction#driving
     // 信息窗体：https://blog.csdn.net/m0_37355951/article/details/77527686
@@ -101,46 +142,50 @@ export default {
       var map = this.map;
       // map.setZoom(18)
       console.log("path:", this.path);
-      var temp = this.path[0];
+      // var temp = this.path[0];
+      this.line = this.path[0];
       for (let i = 1; i < this.path.length; i++) {
-        temp = temp.concat(this.path[i]);
+        // temp = temp.concat(this.path[i]);
+        this.line = this.line.concat(this.path[i]);
       }
-
       //绘制经过的轨迹
       var passedPolyline = new AMap.Polyline({
         map: map,
-        strokeColor: "#CD5C5C", //线颜色
-        //path: this.lineArr,
-        // strokeOpacity: 1,     //线透明度
+        strokeColor: "#00FF00", //线颜色
+        strokeOpacity: 0.9, //线透明度
         showDir: true,
-        strokeWeight: 6, //线宽
-        // strokeStyle: "solid"  //线样式
+        strokeWeight: 7, //线宽
+        lineJoin: "round",
       });
       this.car.on("moving", (e) => {
-        //获取已经经过点的长度
-        this.passedLineLength = e.passedPath.length;
-        //已经经过的点
-        this.havePassedLine = e.passedPath;
         passedPolyline.setPath(e.passedPath);
-        map.setCenter(e.target.getPosition(), true);
+        // map.setCenter(e.target.getPosition(), true);
       });
 
-      console.log("temp:", temp);
-      this.car.moveAlong(temp, {
+      console.log("line:", this.line);
+      this.car.moveAlong(this.line, {
         // 每一段的时长
         // duration: 300, //可根据实际采集时间间隔设置
-        speed: 400,
+        speed: 500,
         autoRotation: true,
         // JSAPI2.0 是否延道路自动设置角度在 moveAlong 里设置
-        // autoRotation: true,
       });
+      this.pauseAnimation();
+      this.resumeAnimation();
+      this.pauseAnimation();
+      this.resumeAnimation();
     },
     pauseAnimation() {
-      this.car.pauseMove(); //暂停动画
+      //暂停动画
+      this.car.pauseMove();
     },
     resumeAnimation() {
       // 继续动画
       this.car.resumeMove();
+    },
+    stopAnimation() {
+      // 停止动画
+      this.car.stopMove();
     },
     Color() {
       var r = Math.floor(Math.random() * 255);
@@ -148,26 +193,20 @@ export default {
       var b = Math.floor(Math.random() * 255);
       return "rgba(" + r + "," + g + "," + b + ",0.8)";
     },
-    async getDispatchDetail() {
-      // var lineColor = "rgba(0,0,205,0.8)";
-      var lineColor = [
-        "rgba(0,255,0,0.8)",
-        "rgba(100,149,237,0.8)",
-        "rgba(255,193,37,0.8)",
-      ];
+    getDispatchDetail() {
+      const lineColor = "#0000FF";
       // 可以随机线的颜色
       this.driving = new AMap.Driving({
         // 驾车路线规划策略，AMap.DrivingPolicy.LEAST_TIME是最快捷模式,还有其他几种方式见Api文档
         policy: AMap.DrivingPolicy.LEAST_TIME,
       });
-      // 用原结果点进行测试
+      // 目前使用原结果点进行测试
       var data = this.expected.filter((data) => {
         return data != "";
       });
       // var data = this.result.filter((data) => {
       //   return data != "";
       // });
-      // console.log("data:", data);
       // 设置起点
       this.start = data[0];
       this.addCar(this.start);
@@ -175,41 +214,29 @@ export default {
       this.path = new Array(data.length - 1);
       // console.log("length:", this.path.length);
       for (let i = 0; i < data.length - 1; i++) {
-        // console.log(
-        //   i,
-        //   "start:",
-        //   data[i][0].toFixed(6),
-        //   data[i][1].toFixed(6),
-        //   "end:",
-        //   data[i + 1][0].toFixed(6),
-        //   data[i + 1][1].toFixed(6)
-        // );
         // ？？？解决this.driving.search的回调函数异步问题
-        // lineColor=this.Color()
-        // console.log(lineColor);
         this.drawMapLine(
           data[i][0],
           data[i][1],
           data[i + 1][0],
           data[i + 1][1],
           map,
-          lineColor[i],
+          lineColor,
           i
         );
       }
-      map.setZoom(18);
+      // map.setZoom(18);
       map.setFitView();
     },
     // start_x:起点的横坐标,start_y：起点的纵坐标,end_x:终点的横坐标,end_y:终点的纵坐标,map:实例化map(this.map),color:随机线的颜色
     // 绘制路径
     drawMapLine(start_x, start_y, end_x, end_y, map, color, i) {
-      // console.log("第",i);
       map.plugin("AMap.Driving", () => {
         var start_xy = new AMap.LngLat(start_x, start_y); //起点
         var end_xy = new AMap.LngLat(end_x, end_y); // 终点
         // 根据起终点经纬度规划驾车导航 路线
         this.driving.search(start_xy, end_xy, (status, result) => {
-          console.log(start_xy, end_xy);
+          // console.log(start_xy, end_xy);
           if (status === "complete") {
             if (result.routes && result.routes.length) {
               // 绘制路线规划的第一条路线，也可以按需求绘制其它几条路线
@@ -227,45 +254,6 @@ export default {
                 strokeColor: color,
                 lineJoin: "round",
               });
-              // var passedPolyline = new AMap.Polyline({
-              //   map: map,
-              //   strokeColor: "#AF5", //线颜色-绿色
-              //   //path: this.lineArr,
-              //   // strokeOpacity: 1,     //线透明度
-              //   strokeWeight: 6, //线宽
-              //   // strokeStyle: "solid"  //线样式
-              // });
-
-              // console.log(start_x, start_y);
-              // console.log(passedPolyline);
-              // if (start_xy == this.start) {
-              //   this.car.on("moving", (e) => {
-              //     passedPolyline.setPath(e.passedPath);
-              //     map.setCenter(e.target.getPosition(), true); // 设置视图为小车中心
-              //   });
-              // }
-
-              // console.log(routeLine);
-              // routeLine.setMap(map);
-              //绘制经过的轨迹
-              // var passedPolyline = new AMap.Polyline({
-              //   map: map,
-              //   strokeColor: "#AF5", //线颜色
-              //   //path: this.lineArr,
-              //   // strokeOpacity: 1,     //线透明度
-              //   strokeWeight: 6, //线宽
-              //   // strokeStyle: "solid"  //线样式
-              // });
-              // this.marker.on("moving", (e) => {
-              //   //获取已经经过点的长度
-              //   this.passedLineLength = e.passedPath.length;
-              //   //已经经过的点
-              //   this.havePassedLine = e.passedPath;
-              //   passedPolyline.setPath(e.passedPath);
-              // });
-              // this.map.setFitView(); //合适的视口
-              // map.setFitView(); // 调整视野达到最佳显示区域
-              // map.setFitView([startMarker, endMarker, routeLine])
               // console.log("绘制驾车路线完成");
             }
           } else {
@@ -325,10 +313,48 @@ export default {
             direction: "bottom",
           },
         });
+        if (i == 0) {
+          marker.content = ["起点", [this.points[i]]];
+        } else if (i == this.points.length - 1) {
+          marker.content = ["终点", this.points[i]];
+        } else {
+          marker.content = ["途径点" + i, this.points[i]];
+        }
+        marker.on("click", this.markerClick);
+        // marker.emit("click",{target:marker})
         this.markList.push(marker);
       }
       console.log("length:", this.markList.length);
       this.map.add(this.markList);
+    },
+    markerClick(e) {
+      // 信息窗体的内容
+      var date =
+        this.date.slice(0, 4) +
+        "年" +
+        this.date.slice(4, 6) +
+        "月" +
+        this.date.slice(6, 8) +
+        "日";
+      var content = [
+        "<b>" + e.target.content[0] + "</b>",
+        "<b>用户ID: " + this.user_id + "</b>",
+        "日期: " + date,
+        "经纬度: [" +
+          e.target.content[1][0].toFixed(2) +
+          "," +
+          e.target.content[1][1].toFixed(2) +
+          "]",
+        // "时间：",
+      ];
+
+      // 创建 infoWindow 实例
+      var infoWindow = new AMap.InfoWindow({
+        content: content.join("<br>"), //传入 dom 对象，或者 html 字符串
+      });
+      var map = this.map;
+      // 打开信息窗体
+      infoWindow.open(map, e.target.getPosition());
     },
     // 地图初始化
     async init() {
@@ -348,12 +374,20 @@ export default {
       this.origin = res.data.origin[0].slice(0, 8);
       this.expected = res.data.expected[0].slice(0, 8);
       this.result = res.data.result[0].slice(0, 8);
-      console.log(this.origin, this.expected, this.result);
+      // console.log(this.origin, this.expected, this.result);
       AMapLoader.load({
         key: "ddd292c88aa1bad9c04891a47724f40a", //设置您的key
         version: "2.0",
         // version:"1.4.4",
-        plugins: ["AMap.ToolBar", "AMap.Driving", "AMap.MoveAnimation"],
+        plugins: [
+          "AMap.ToolBar",
+          "AMap.Driving",
+          "AMap.MoveAnimation",
+          "AMap.Scale",
+          "AMap.HawkEye",
+          "AMap.MapType",
+          "AMap.ControlBar",
+        ],
         AMapUI: {
           version: "1.1",
           plugins: ["overlay/SimpleMarker"],
@@ -370,6 +404,12 @@ export default {
             // zooms: [2, 22],
             center: this.center,
           });
+          this.map.addControl(new AMap.Scale());
+          this.map.addControl(new AMap.ToolBar());
+          this.map.addControl(new AMap.HawkEye());
+          this.map.addControl(new AMap.MapType());
+          this.map.addControl(new AMap.ControlBar());
+
           // 初始化点
           for (let i = 0; i < this.points.length; i++) {
             var marker = new AMap.Marker({
@@ -381,7 +421,7 @@ export default {
             });
             this.markList.push(marker);
           }
-          console.log("length:", this.markList.length);
+          // console.log("length:", this.markList.length);
           this.map.add(this.markList);
         })
         .catch((e) => {
@@ -407,7 +447,7 @@ export default {
   /* position: absolute; */
 }
 .btn_box {
-  margin: 10px;
-  padding: 10px;
+  margin: 10px 0px 0px 10px;
+  /* padding: 10px; */
 }
 </style>

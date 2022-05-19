@@ -51,7 +51,7 @@ export default {
 } */
 
 #nav {
-  padding: 20px 0px 20px 0px;
+  padding: 20px 0px 0px 0px;
   /* align-content: center; */
   text-align: center;
   font-size: 26px;
