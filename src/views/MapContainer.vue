@@ -1,9 +1,6 @@
 <template>
   <div class="home_div">
     <div class="btn_box">
-      <!-- <el-button type="primary" size="small" round @click="removeMarkers"
-        >Remove</el-button
-      > -->
       <el-button type="success" size="small" round @click="addMarkers('Origin')"
         >Origin</el-button
       >
@@ -20,8 +17,8 @@
         >清除</el-button
       >
     </div>
-    <div class="btn_box">
-      动画控制
+    <div class="btn_box" v-if="animation">
+      <h3>动画控制</h3>
       <div>
         <el-button type="primary" size="small" round @click="startAnimation()"
           >开始动画</el-button
@@ -35,12 +32,9 @@
         <el-button type="success" size="small" round @click="setcenter"
           >定位</el-button
         >
-        <!-- <el-button type="primary" size="small" round @click="stopAnimation()"
-          >停止动画</el-button
-        > -->
       </div>
-      <!-- <el-button type="success" @click="addinfo">infoWindow</el-button> -->
     </div>
+    <div v-else></div>
     <div id="container"></div>
     <div id="panel"></div>
   </div>
@@ -60,15 +54,18 @@ export default {
       date: "",
       time_id: "",
       user_id: [],
-      origin: [],
-      expected: [],
-      result: [],
+      origin: [], // 轨迹点
+      expected: [], // 轨迹点
+      result: [], // 轨迹点
       center: [116.407387, 39.904179],
-      points: [[116.407387, 39.904179]],
+      points: [[116.407387, 39.904179]], //轨迹点-重复
+      marker_points: [], //不重复的轨迹坐标点
+      content: [],
       markList: [],
       path: [], // 路径
       start: null,
       line: [],
+      animation: false,
     };
   },
   created() {},
@@ -131,6 +128,7 @@ export default {
     },
     clear() {
       // 清除地图
+      this.animation = false;
       var map = this.map;
       map.clearMap();
       // // 清除以前的行经路线
@@ -166,7 +164,7 @@ export default {
       this.car.moveAlong(this.line, {
         // 每一段的时长
         // duration: 300, //可根据实际采集时间间隔设置
-        speed: 500,
+        speed: 1000,
         autoRotation: true,
         // JSAPI2.0 是否延道路自动设置角度在 moveAlong 里设置
       });
@@ -201,9 +199,10 @@ export default {
         policy: AMap.DrivingPolicy.LEAST_TIME,
       });
       // 目前使用原结果点进行测试
-      var data = this.expected.filter((data) => {
-        return data != "";
-      });
+      // var data = this.expected.filter((data) => {
+      //   return data != "";
+      // });
+      var data = this.points;
       // var data = this.result.filter((data) => {
       //   return data != "";
       // });
@@ -214,7 +213,7 @@ export default {
       this.path = new Array(data.length - 1);
       // console.log("length:", this.path.length);
       for (let i = 0; i < data.length - 1; i++) {
-        // ？？？解决this.driving.search的回调函数异步问题
+        // 解决this.driving.search的回调函数异步问题
         this.drawMapLine(
           data[i][0],
           data[i][1],
@@ -226,6 +225,7 @@ export default {
         );
       }
       // map.setZoom(18);
+      this.animation = true;
       map.setFitView();
     },
     // start_x:起点的横坐标,start_y：起点的纵坐标,end_x:终点的横坐标,end_y:终点的纵坐标,map:实例化map(this.map),color:随机线的颜色
@@ -275,7 +275,7 @@ export default {
     },
     removeMarkers() {
       // 去除现在的坐标点列表
-      console.log(this.markList);
+      // console.log(this.markList);
       this.map.remove(this.markList);
       this.markList = [];
     },
@@ -303,32 +303,70 @@ export default {
         this.icon = require("../assets/red.png");
       }
       this.markList = [];
+      this.marker_points = [];
+      var content = [];
+      var content_temp = "";
       for (let i = 0; i < this.points.length; i++) {
+        this.marker_points.push(this.points[i]);
+      }
+      for (let i = 0; i < this.marker_points.length; i++) {
+        // 去除重复的点
+        for (var j = i + 1; j < this.marker_points.length; j++) {
+          if (
+            this.marker_points[i][0] == this.marker_points[j][0] &&
+            this.marker_points[i][1] == this.marker_points[j][1]
+          ) {
+            this.marker_points.splice(j, 1);
+            j--;
+          }
+        }
+      }
+      for (let i = 0; i < this.marker_points.length; i++) {
+        content_temp = "";
+        if (i == 0) {
+          content_temp = "起点";
+        } else if (i == this.marker_points.length - 1) {
+          content_temp = "终点";
+        }
+        for (let j = 1; j < this.points.length - 1; j++) {
+          if (
+            this.marker_points[i][0] == this.points[j][0] &&
+            this.marker_points[i][1] == this.points[j][1]
+          ) {
+            if (content_temp == "") {
+              content_temp = "途径点" + j;
+            } else {
+              content_temp = content_temp + "&途径点" + j;
+            }
+          }
+        }
+        content.push(content_temp);
+      }
+      // console.log("content:", content);
+      // console.log("重复:", this.points);
+      // console.log("不重复：", this.marker_points);
+      for (let i = 0; i < this.marker_points.length; i++) {
         var marker = new AMap.Marker({
-          position: this.points[i],
+          position: this.marker_points[i],
           offset: new AMap.Pixel(-16, -32),
           icon: this.icon, // 添加 Icon 实例
           label: {
-            content: i + "position",
+            content: content[i],
             direction: "bottom",
           },
         });
-        if (i == 0) {
-          marker.content = ["起点", [this.points[i]]];
-        } else if (i == this.points.length - 1) {
-          marker.content = ["终点", this.points[i]];
-        } else {
-          marker.content = ["途径点" + i, this.points[i]];
-        }
+        marker.content = [content[i], this.marker_points[i]];
         marker.on("click", this.markerClick);
-        // marker.emit("click",{target:marker})
         this.markList.push(marker);
       }
       console.log("length:", this.markList.length);
       this.map.add(this.markList);
+      this.map.setFitView();
     },
     markerClick(e) {
       // 信息窗体的内容
+      console.log(e.target.content);
+      // console.log(e.target.content[1][0]);
       var date =
         this.date.slice(0, 4) +
         "年" +
@@ -336,7 +374,8 @@ export default {
         "月" +
         this.date.slice(6, 8) +
         "日";
-      var content = [
+      var content;
+      content = [
         "<b>" + e.target.content[0] + "</b>",
         "<b>用户ID: " + this.user_id + "</b>",
         "日期: " + date,
@@ -371,9 +410,12 @@ export default {
       this.date = res.data.date[0];
       this.time_id = res.data.time[0];
       this.user_id = res.data.user[0];
-      this.origin = res.data.origin[0].slice(0, 8);
-      this.expected = res.data.expected[0].slice(0, 8);
-      this.result = res.data.result[0].slice(0, 8);
+      // this.origin = res.data.origin[0].slice(0, 8);
+      // this.expected = res.data.expected[0].slice(0, 8);
+      // this.result = res.data.result[0].slice(0, 8);
+      this.origin = res.data.origin[0];
+      this.expected = res.data.expected[0];
+      this.result = res.data.result[0];
       // console.log(this.origin, this.expected, this.result);
       AMapLoader.load({
         key: "ddd292c88aa1bad9c04891a47724f40a", //设置您的key
