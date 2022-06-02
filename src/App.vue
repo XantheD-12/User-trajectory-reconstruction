@@ -13,7 +13,7 @@
       >
         <el-menu-item index="/">Home</el-menu-item>
         <el-menu-item index="/map">Map</el-menu-item>
-        <el-menu-item index="/test">Test</el-menu-item>
+        <el-menu-item index="/charts">Model Analysis</el-menu-item>
       </el-menu>
       <!-- <router-link to="/">Home</router-link> |
       <router-link to="/map">Map</router-link> | -->
