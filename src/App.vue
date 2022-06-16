@@ -7,7 +7,7 @@
         :router="true"
         class="el-menu-demo"
         mode="horizontal"
-        background-color="#545c64"
+        background-color="#708090"
         text-color="#fff"
         active-text-color="#ffd04b"
       >
@@ -15,8 +15,6 @@
         <el-menu-item index="/map">Map</el-menu-item>
         <el-menu-item index="/charts">Model Analysis</el-menu-item>
       </el-menu>
-      <!-- <router-link to="/">Home</router-link> |
-      <router-link to="/map">Map</router-link> | -->
     </div>
     <router-view />
   </div>
@@ -35,7 +33,8 @@ export default {
 
 <style  scoped>
 #app {
-  height: 80%;
+  /* height: 80%; */
+  height: 100%;
   width: 100%;
   padding: 0px;
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -51,7 +50,7 @@ export default {
 } */
 
 #nav {
-  padding: 20px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
   /* align-content: center; */
   text-align: center;
   font-size: 26px;
@@ -64,5 +63,9 @@ export default {
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+.el-menu.el-menu--horizontal{
+  border:0px;
 }
 </style>
