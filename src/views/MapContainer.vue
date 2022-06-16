@@ -1,6 +1,11 @@
 <template>
   <div class="home_div">
-    <div class="btn_box">
+    <div class="btn_box1">
+      <span
+        ><b>用户ID: {{ user_id }}</b></span
+      >
+      <span>|</span>
+      <span><b>轨迹点的标定与绘制: </b></span>
       <el-button type="success" size="small" round @click="addMarkers('Origin')"
         >Origin</el-button
       >
@@ -17,22 +22,21 @@
         >清除</el-button
       >
     </div>
-    <div class="btn_box" v-if="animation">
-      <h3>动画控制</h3>
-      <div>
-        <el-button type="primary" size="small" round @click="startAnimation()"
-          >开始动画</el-button
-        >
-        <el-button type="primary" size="small" round @click="pauseAnimation()"
-          >暂停动画</el-button
-        >
-        <el-button type="primary" size="small" round @click="resumeAnimation()"
-          >继续动画</el-button
-        >
-        <el-button type="success" size="small" round @click="setcenter"
-          >定位</el-button
-        >
-      </div>
+    <div class="btn_box2" v-if="animation">
+      <!-- <h3>动画控制</h3> -->
+      <span><b>动画控制: </b></span>
+      <el-button type="primary" size="small" round @click="startAnimation()"
+        >开始动画</el-button
+      >
+      <el-button type="primary" size="small" round @click="pauseAnimation()"
+        >暂停动画</el-button
+      >
+      <el-button type="primary" size="small" round @click="resumeAnimation()"
+        >继续动画</el-button
+      >
+      <el-button type="success" size="small" round @click="setcenter"
+        >定位</el-button
+      >
     </div>
     <div v-else></div>
     <div id="container"></div>
@@ -53,11 +57,12 @@ export default {
       icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
       date: "",
       time_id: "",
-      user_id: [],
+      user_id: "0",
       origin: [], // 轨迹点
       expected: [], // 轨迹点
       result: [], // 轨迹点
-      center: [116.407387, 39.904179],
+      center: [116.407387, 39.904179],  // 北京
+      // center: [112.851274, 35.497553], // 山西晋城
       points: [[116.407387, 39.904179]], //轨迹点-重复
       marker_points: [], //不重复的轨迹坐标点
       content: [],
@@ -78,6 +83,7 @@ export default {
       // console.log(this.car);
       console.log(this.car.getPosition());
       map.setCenter(this.car.getPosition(), true);
+      // map.setZoomAndCenter(15, this.car.getPosition());
       // this.car.on("moving", function (e) {
       //   map.setCenter(e.target.getPosition(), true);
       // });
@@ -227,6 +233,7 @@ export default {
       // map.setZoom(18);
       this.animation = true;
       map.setFitView();
+      map.setZoomAndCenter(14, this.car.getPosition());
     },
     // start_x:起点的横坐标,start_y：起点的纵坐标,end_x:终点的横坐标,end_y:终点的纵坐标,map:实例化map(this.map),color:随机线的颜色
     // 绘制路径
@@ -281,6 +288,7 @@ export default {
     },
     addMarkers(type) {
       console.log(type);
+      let type_str = "";
       // 根据类型添加点
       if (type == "Origin") {
         this.removeMarkers();
@@ -288,20 +296,26 @@ export default {
           return data != "";
         });
         // console.log("origin:",this.points);
+        type_str = "输入轨迹";
         this.icon = require("../assets/black.png");
       } else if (type == "Expected") {
+        this.removeMarkers();
         this.points = this.expected.filter((data) => {
           return data != "";
         });
+        type_str = "原始轨迹";
         // console.log("Expected:",this.points);
         this.icon = require("../assets/blue.png");
       } else if (type == "Result") {
+        this.removeMarkers();
         this.points = this.result.filter((data) => {
           return data != "";
         });
+        type_str = "预测轨迹";
         // console.log("Result:",this.points);
         this.icon = require("../assets/red.png");
       }
+      console.log(type_str);
       this.markList = [];
       this.marker_points = [];
       var content = [];
@@ -355,7 +369,7 @@ export default {
             direction: "bottom",
           },
         });
-        marker.content = [content[i], this.marker_points[i]];
+        marker.content = [content[i], this.marker_points[i], type_str];
         marker.on("click", this.markerClick);
         this.markList.push(marker);
       }
@@ -376,7 +390,7 @@ export default {
         "日";
       var content;
       content = [
-        "<b>" + e.target.content[0] + "</b>",
+        "<b>" + e.target.content[0] + "——" + e.target.content[2] + "</b>",
         "<b>用户ID: " + this.user_id + "</b>",
         "日期: " + date,
         "经纬度: [" +
@@ -406,17 +420,30 @@ export default {
       // this.origin = res.data.origin[15];
       // this.expected = res.data.expected[15];
       // this.result = res.data.result[15];
+
+      // 从结果中随机选择一条数据
+      var id = 0;
+      id = Math.floor(Math.random() * 50);
+      // console.log("id:",id);
+      this.date = res.data.date[id];
+      this.time_id = res.data.time[id];
+      this.user_id = res.data.user[id];
+      this.origin = res.data.origin[id];
+      this.expected = res.data.expected[id];
+      this.result = res.data.result[id];
+
       // 选择第一条数据做测试
-      this.date = res.data.date[0];
-      this.time_id = res.data.time[0];
-      this.user_id = res.data.user[0];
-      // this.origin = res.data.origin[0].slice(0, 8);
-      // this.expected = res.data.expected[0].slice(0, 8);
-      // this.result = res.data.result[0].slice(0, 8);
-      this.origin = res.data.origin[0];
-      this.expected = res.data.expected[0];
-      this.result = res.data.result[0];
+      // this.date = res.data.date[0];
+      // this.time_id = res.data.time[0];
+      // this.user_id = res.data.user[0];
+      // // this.origin = res.data.origin[0].slice(0, 8);
+      // // this.expected = res.data.expected[0].slice(0, 8);
+      // // this.result = res.data.result[0].slice(0, 8);
+      // this.origin = res.data.origin[0];
+      // this.expected = res.data.expected[0];
+      // this.result = res.data.result[0];
       // console.log(this.origin, this.expected, this.result);
+
       AMapLoader.load({
         key: "ddd292c88aa1bad9c04891a47724f40a", //设置您的key
         version: "2.0",
@@ -442,7 +469,8 @@ export default {
         .then((AMap) => {
           this.map = new AMap.Map("container", {
             viewMode: "3D",
-            zoom: 11.5,
+            // zoom: 11.5,
+            zoom:15,
             // zooms: [2, 22],
             center: this.center,
           });
@@ -479,17 +507,38 @@ export default {
   padding: 0px;
   margin: 0px;
   width: 100%;
-  height: 100%;
+  height: 80%;
   /* position: relative; */
 }
 #container {
-  margin: 10px;
-  width: 100% - 20px;
-  height: 100%;
+  margin-top: 15px;
+  width: 80%;
+  height: 86%;
+  left: 10%;
   /* position: absolute; */
 }
-.btn_box {
+.btn_box1 {
+  position: relative;
+  width: 60%;
+  left: 18%;
+  margin: 10px 0px 0px 0px;
+  padding: 0px 20px 10px 40px;
+  border-bottom: 1px solid #dcdcdc;
+
+  /* padding: 10px; */
+}
+.btn_box1 span,
+.btn_box2 span {
+  font-size: 22px;
+  vertical-align: top;
+  margin: 0px 20px 0px 0px;
+}
+.btn_box2 {
+  position: relative;
+  width: 45%;
+  left: 30%;
   margin: 10px 0px 0px 10px;
+
   /* padding: 10px; */
 }
 </style>
